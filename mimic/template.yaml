@@ -1,0 +1,82 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: AWS Lambda Kakao Chatbot
+
+Globals:
+  Function:
+    Timeout: 480
+    MemorySize: 1024
+
+Resources:
+  AWSLambdaKakaoBotFunctionRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: AWSLambdaKakaoBotFunctionRole
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service: lambda.amazonaws.com
+              Action: sts:AssumeRole
+        Policies:
+          - PolicyName: KakaoBotFunctionPolicy
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - lambda:InvokeFunction
+                    - lambda:InvokeAsync
+                  Resource: "*"
+                - Effect: Allow
+                  Action:
+                    - logs:CreateLogGroup
+                    - logs:CreateLogStream
+                    - logs:PutLogEvents
+                  Resource: "*"
+  
+  ApiGatewayRestApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      StageName: v1
+      OpenApiVersion: '2.0'
+      Auth:
+        ApiKeyRequired: true
+        UsagePlan:
+          CreateUsagePlan: PER_API
+  
+  LambdaLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      LayerName: LambdaLayer
+      Description: Python Lambda Layer
+      ContentUri: ./layer.zip
+      CompatibleRuntimes:
+        - python3.12
+  
+  AWSLambdaKakaoBotFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: app.lambda_handler
+      Runtime: python3.12
+      CodeUri: ./src
+      Layers:
+        - !Ref LambdaLayer
+      Description: Kakao Chatbot Function
+      Role: !GetAtt AWSLambdaKakaoBotFunctionRole.Arn
+      Events:
+        Skill:
+          Type: Api
+          Properties:
+            RestApiId: !Ref ApiGatewayRestApi
+            Path: /kakao
+            Method: ANY
+
+Outputs:
+  KakaoBotFunction:
+    Description: "Kakao Chatbot Function ARN"
+    Value: !GetAtt AWSLambdaKakaoBotFunction.Arn
+  KakaoBotFunctionRole:
+    Description: "IAM Role for Kakao Chatbot Function"
+    Value: !GetAtt AWSLambdaKakaoBotFunctionRole.Arn
