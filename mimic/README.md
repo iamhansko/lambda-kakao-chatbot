@@ -9,9 +9,6 @@ sam build & sam deploy --guided --capabilities CAPABILITY_NAMED_IAM
 
 # Update
 sam build & sam deploy --no-confirm-changeset --no-disable-rollback --capabilities CAPABILITY_NAMED_IAM
-
-# Register Command
-pip install requests -t helpers && python helpers/register_commands.py
 ```
 
 ## Packages
@@ -19,7 +16,13 @@ pip install requests -t helpers && python helpers/register_commands.py
 # cd mimic
 # mkdir -p layer/python
 # pip install requests -t ./layer/python
-# Zip layer/ -> layer.zip
+# layer/ -> layer.zip
 
 requests
+```
+
+## 카카오 비즈니스 챗봇 관리자센터
+```
+헤더값 입력
+x-api-key : YOUR_API_GATEWAY_API_KEY
 ```
