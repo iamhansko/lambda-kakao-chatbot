@@ -6,33 +6,8 @@ Globals:
   Function:
     Timeout: 480
     MemorySize: 1024
-    Environment:
-      Variables:
-        TEXT_TO_IMAGE_S3_BUCKET_NAME : !Ref TextToImageS3Bucket
-        AWS_REGION_NAME : !Ref AWS::Region
 
 Resources:
-  TextToImageS3Bucket:
-    Type: 'AWS::S3::Bucket'
-    Properties:
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: false
-        BlockPublicPolicy: false
-        IgnorePublicAcls: false
-        RestrictPublicBuckets: false
-  TextToImageS3BucketPolicy:
-    Type: 'AWS::S3::BucketPolicy'
-    Properties:
-      Bucket: !Ref TextToImageS3Bucket
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: PublicReadGetObject
-            Effect: Allow
-            Principal: '*'
-            Action: 's3:GetObject'
-            Resource: !Sub "${TextToImageS3Bucket.Arn}/*"
-
   AWSLambdaKakaoBotFunctionRole:
       Type: AWS::IAM::Role
       Properties:
@@ -64,7 +39,6 @@ Resources:
                   Action:
                     - s3:*
                     - bedrock:*
-                    - translate:*
                   Resource: "*"
   
   ApiGatewayRestApi:
@@ -89,9 +63,9 @@ Resources:
   AWSLambdaKakaoBotFunction:
     Type: AWS::Serverless::Function
     Properties:
-      Handler: lambda_handler
+      Handler: app.lambda_handler
       Runtime: python3.12
-      CodeUri: ./src/app
+      CodeUri: ./src
       Layers:
         - !Ref LambdaLayer
       Description: Kakao Chatbot Function
